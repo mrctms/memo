@@ -8,6 +8,7 @@ Download <a href="https://github.com/MarckTomack/memo/releases/tag/v1.0">here</a
 
 <pre>
 <code>
+cd memo
 chmod+x install.sh
 sudo ./install.sh
 </code>
