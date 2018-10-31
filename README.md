@@ -26,7 +26,7 @@ s - To show all memo
 </code>
 </pre>
 
-For example:
+For example,<br>
 If you want add a memo:
 <pre>
 <code>
