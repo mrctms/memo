@@ -92,24 +92,26 @@ func main() {
    os.Chdir(FullPath)
 
 
-  if ArgsChoice := os.Args[1]; ArgsChoice == "a"{
+  if len(os.Args) == 3 && os.Args[1] == "a" && len(os.Args[2]) >= 1{
     ArgsString := os.Args[2]
     CreateMemo()
     InsertMemo(ArgsString)
-  }else if ArgsChoice := os.Args[1]; ArgsChoice == "d"{
+  }else if len(os.Args) == 3 && os.Args[1] == "d" && len(os.Args[2]) >= 1{
     ArgsInt := os.Args[2]
     CreateMemo()
     DeleteMemo(ArgsInt)
-  }else if ArgsChoice := os.Args[1]; ArgsChoice == "da"{
+  }else if len(os.Args) == 2 && os.Args[1] == "da"{
     CreateMemo()
     DeleteAllMemo()
-  }else if ArgsChoice := os.Args[1]; ArgsChoice == "s"{
+  }else if len(os.Args) == 2 && os.Args[1] == "s"{
     SelectMemo()
-  }else if ArgsChoice := os.Args[1]; ArgsChoice == "h"{
+  }else if len(os.Args) == 1 || os.Args[1] == "h"{
     fmt.Printf("\nYou can use this command:\n" + "\n" +
                "a - To add a memo\n" +
                "d position number - To delete a memo\n" +
                "da  - To delete all memo\n" +
                "s - To show all memo\n" + "\n")
+  }else{
+    fmt.Println("Something went wrong")
   }
  }
