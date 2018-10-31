@@ -4,6 +4,7 @@ With this program you can save your memo from the command line.
 
 # Installation on Linux
 
+Download <a href="https://github.com/MarckTomack/memo/releases/tag/v1.0">here</a>
 
 <pre>
 <code>
