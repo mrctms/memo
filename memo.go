@@ -3,13 +3,14 @@ package main
 import ("fmt"
         "database/sql"
         "os"
+        "time"
         _ "github.com/mattn/go-sqlite3"
         "github.com/mitchellh/go-homedir"
        )
 
 
 func CreateMemo() {
-  db, err:= sql.Open("sqlite3", "./memo.db")
+  var db, err = sql.Open("sqlite3", "./memo.db")
   if err != nil {
     fmt.Println(err)
   }
@@ -22,7 +23,7 @@ func CreateMemo() {
 
 
 func InsertMemo(ArgsString string) {
-  db, err:= sql.Open("sqlite3", "./memo.db")
+  var db, err = sql.Open("sqlite3", "./memo.db")
   if err != nil {
     fmt.Println(err)
   }
@@ -36,19 +37,21 @@ func InsertMemo(ArgsString string) {
 
 
 func SelectMemo() {
-  db, err:= sql.Open("sqlite3", "./memo.db")
+  var db, err = sql.Open("sqlite3", "./memo.db")
   if err != nil {
     fmt.Println(err)
   }
-  rows, err:= db.Query("SELECT * FROM Things")
-  if err != nil  {
+  var rows, error = db.Query("SELECT * FROM Things")
+  if error != nil  {
     fmt.Println(err)
   }
+  var t = time.Now()
+  var date = t.Format("2006-01-02 15:04:05")
   fmt.Println("\nMemo:\n")
   for rows.Next() {
     var ToDo string
     rows.Scan(&ToDo)
-    fmt.Println(ToDo)
+    fmt.Println(ToDo + "  " + "(" +date+ ")")
   }
   fmt.Printf("\n")
   defer rows.Close()
@@ -57,7 +60,7 @@ func SelectMemo() {
 
 
 func DeleteMemo(ArgsInt string) {
-  db, err:= sql.Open("sqlite3", "./memo.db")
+  var db, err = sql.Open("sqlite3", "./memo.db")
   if err != nil {
     fmt.Println(err)
   }
@@ -70,7 +73,7 @@ func DeleteMemo(ArgsInt string) {
 
 
 func DeleteAllMemo() {
-  db, err:= sql.Open("sqlite3", "./memo.db")
+  var db, err = sql.Open("sqlite3", "./memo.db")
   if err != nil {
     fmt.Println(err)
   }
@@ -84,11 +87,11 @@ func DeleteAllMemo() {
 
 
 func main() {
-   HomeUser ,_:= homedir.Dir()
+   var HomeUser ,_ = homedir.Dir()
    os.Chdir(HomeUser)
    os.Mkdir(".memo", 0700)
-   ExHomeUser ,_:= homedir.Expand("/.memo")
-   FullPath := HomeUser + ExHomeUser
+   var ExHomeUser ,_ = homedir.Expand("/.memo")
+   var FullPath = HomeUser + ExHomeUser
    os.Chdir(FullPath)
 
 
@@ -110,7 +113,8 @@ func main() {
                "a - To add a memo\n" +
                "d position number - To delete a memo\n" +
                "da  - To delete all memo\n" +
-               "s - To show all memo\n" + "\n")
+               "s - To show all memo\n" +
+               "h - This message\n" + "\n")
   }else{
     fmt.Println("Something went wrong")
   }
