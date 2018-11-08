@@ -27,7 +27,9 @@ func InsertMemo(ArgsString string) {
   if err != nil {
     fmt.Println(err)
   }
-  _, err = db.Exec("INSERT INTO Things (ToDo) VALUES (?)", (ArgsString))
+  var t = time.Now()
+  var date = t.Format("2006-01-02 15:04:05")
+  _, err = db.Exec("INSERT INTO Things (ToDo) VALUES (?)", (ArgsString + "\t\t" + "(" +date+ ")"))
   if err != nil {
     fmt.Println(err)
   }
@@ -45,13 +47,11 @@ func SelectMemo() {
   if error != nil  {
     fmt.Println(err)
   }
-  var t = time.Now()
-  var date = t.Format("2006-01-02 15:04:05")
   fmt.Println("\nMemo:\n")
   for rows.Next() {
     var ToDo string
     rows.Scan(&ToDo)
-    fmt.Println(ToDo + "  " + "(" +date+ ")")
+    fmt.Println(ToDo)
   }
   fmt.Printf("\n")
   defer rows.Close()
