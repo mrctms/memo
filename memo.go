@@ -93,18 +93,17 @@ func main() {
    var ExHomeUser ,_ = homedir.Expand("/.memo")
    var FullPath = HomeUser + ExHomeUser
    os.Chdir(FullPath)
+   CreateMemo()
+
 
 
   if len(os.Args) == 3 && os.Args[1] == "a" && len(os.Args[2]) >= 1{
     ArgsString := os.Args[2]
-    CreateMemo()
     InsertMemo(ArgsString)
   }else if len(os.Args) == 3 && os.Args[1] == "d" && len(os.Args[2]) >= 1{
     ArgsInt := os.Args[2]
-    CreateMemo()
     DeleteMemo(ArgsInt)
   }else if len(os.Args) == 2 && os.Args[1] == "da"{
-    CreateMemo()
     DeleteAllMemo()
   }else if len(os.Args) == 2 && os.Args[1] == "s"{
     SelectMemo()
