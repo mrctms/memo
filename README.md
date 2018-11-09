@@ -37,13 +37,13 @@ If you want delete a single memo:
 <pre>
 <code>
 memo s
-buy some cookies
-go to the gym
-buy new car
+1 - buy some cookies
+2 - https://github.com/MarckTomack/memo
+3 - buy new car
 <br>
 memo d 2
 memo s
-buy some cookies
-buy new car
+1 - buy some cookies
+2 - buy new car
 </code>
 </pre>
