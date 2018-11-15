@@ -47,3 +47,11 @@ memo s
 2 - buy new car
 </code>
 </pre>
+
+# Build from source
+
+<pre>
+go get github.com/mattn/go-sqlite3
+go get github.com/mitchellh/go-homedir
+go build memo.go
+</pre>
