@@ -23,6 +23,8 @@ a - To add a memo
 d position number- To delete a memo
 da - To delete all memo
 s - To show all memo
+a sh - Add a shorted memo
+r position number - Show the complete memo
 </code>
 </pre>
 
@@ -31,6 +33,7 @@ If you want add a memo:
 <pre>
 <code>
 memo a "buy some cookies"
+memo a sh "long string" "short string"
 </code>
 </pre>
 If you want delete a single memo:
@@ -40,11 +43,15 @@ memo s
 1 - buy some cookies
 2 - https://github.com/MarckTomack/memo
 3 - buy new car
+4 - link README
+memo r 4
+4 - https://github.com/MarckTomack/memo/edit/master/README.md
 <br>
 memo d 2
 memo s
 1 - buy some cookies
-2 - buy new car
+3 - buy new car
+4 - link README
 </code>
 </pre>
 
