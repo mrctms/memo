@@ -6,7 +6,7 @@ import (
         "os"
         "time"
         _ "github.com/mattn/go-sqlite3"
-        "github.com/mitchellh/go-homedir"
+        "os/user"
         "log"
 )
 
@@ -37,7 +37,7 @@ func InsertShort(ArgsString string, ShortString string){
 
   defer db.Close()
 }
-  
+
 
 func InsertMemo(ArgsString string) {
   var db, err = sql.Open("sqlite3", "./memo.db")
@@ -75,7 +75,7 @@ func SelectShortMemo(ArgsRowid string) {
   defer rows.Close()
   defer db.Close()
 }
-  
+
 
 
 func SelectMemo() {
@@ -125,17 +125,18 @@ func DeleteAllMemo() {
   }
 }
 
+func GetUserHome() {
+  var Home ,_ = user.Current()
+  os.Chdir(Home.HomeDir)
+  os.Mkdir(".memo", 0700)
+  os.Chdir(".memo")
+  CreateMemo()
+}
 
 
 func main() {
-   var HomeUser ,_ = homedir.Dir()
-   os.Chdir(HomeUser)
-   os.Mkdir(".memo", 0700)
-   var ExHomeUser ,_ = homedir.Expand("/.memo")
-   var FullPath = HomeUser + ExHomeUser
-   os.Chdir(FullPath)
-   CreateMemo()
-
+  GetUserHome()
+   
   if len(os.Args) == 3 && os.Args[1] == "a" && len(os.Args[2]) >= 1{
     var ArgsString string = os.Args[2]
     InsertMemo(ArgsString)
@@ -159,8 +160,8 @@ func main() {
                "d position number - To delete a memo\n" +
                "da  - To delete all memo\n" +
                "s - To show all memo\n" +
-               "a sh - Add a shorted memo\n" + 
-               "r position number - Show the complete memo\n" + 
+               "a sh - Add a shorted memo\n" +
+               "r position number - Show the complete memo\n" +
                "h - This message\n" + "\n")
   }else{
     fmt.Println("Something went wrong")
