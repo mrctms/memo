@@ -99,6 +99,33 @@ func SelectMemo() {
   defer db.Close()
 }
 
+func ModifyMemo(ArgsStringR string, ArgsStringM string) {
+  var db, err = sql.Open("sqlite3", "./memo.db")
+  if err != nil {
+    log.Fatal(err)
+  }
+  var t = time.Now()
+  var date = t.Format("2006-01-02 15:04:05")
+  _, err = db.Exec("UPDATE Things SET ToDo=? WHERE rowid=?", (ArgsStringM + "\t\t" + "("+date+")"), (ArgsStringR))
+  if err != nil {
+    log.Fatal(err)
+  defer db.Close()
+  }
+}
+
+func ModifyMemoShort(ArgsStringR string, ArgsStringS string) {
+  var db, err = sql.Open("sqlite3", "./memo.db")
+  if err != nil {
+    log.Fatal(err)
+  }
+  var t = time.Now()
+  var date = t.Format("2006-01-02 15:04:05")
+  _, err = db.Exec("UPDATE Things SET Short=? WHERE rowid=?", (ArgsStringS + "\t\t" + "("+date+")"), (ArgsStringR))
+  if err != nil {
+    log.Fatal(err)
+  defer db.Close()
+  }
+}
 
 func DeleteMemo(ArgsInt string) {
   var db, err = sql.Open("sqlite3", "./memo.db")
@@ -149,14 +176,20 @@ func main() {
     InsertShort(os.Args[3], os.Args[4])
   }else if len(os.Args) == 3 && os.Args[1] == "r"{
     SelectShortMemo(os.Args[2])
+  }else if len(os.Args) == 4 && os.Args[1] == "m"{
+    ModifyMemo(os.Args[2], os.Args[3])
+  }else if len(os.Args) == 5 && os.Args[1] == "m" && os.Args[2] == "sh" {
+    ModifyMemoShort(os.Args[3], os.Args[4])
   }else if len(os.Args) == 1 || os.Args[1] == "h"{
     fmt.Printf("\nYou can use this command:\n" + "\n" +
                "a - To add a memo\n" +
                "d position number - To delete a memo\n" +
                "da  - To delete all memo\n" +
                "s - To show all memo\n" +
-               "a sh - Add a shorted memo\n" +
+               "a sh long memo] shorted memo - Add a shorted memo\n" +
                "r position number - Show the complete memo\n" +
+               "m position number - To edit a memo\n" +
+               "m sh position number - To edit the memo behind the shorted memo\n" +
                "h - This message\n" + "\n")
   }else{
     fmt.Println("Something went wrong")
