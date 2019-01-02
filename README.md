@@ -25,6 +25,8 @@ da - To delete all memo
 s - To show all memo
 a sh - Add a shorted memo
 r position number - Show the complete memo
+m position number - To edit a memo
+m sh position number - To edit the memo behind the shorted memo
 </code>
 </pre>
 
@@ -59,6 +61,5 @@ memo s
 
 <pre>
 go get github.com/mattn/go-sqlite3
-go get github.com/mitchellh/go-homedir
 go build memo.go
 </pre>
