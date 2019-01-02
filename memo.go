@@ -136,24 +136,19 @@ func GetUserHome() {
 
 func main() {
   GetUserHome()
-   
+
   if len(os.Args) == 3 && os.Args[1] == "a" && len(os.Args[2]) >= 1{
-    var ArgsString string = os.Args[2]
-    InsertMemo(ArgsString)
+    InsertMemo(os.Args[2])
   }else if len(os.Args) == 3 && os.Args[1] == "d" && len(os.Args[2]) >= 1{
-    var ArgsInt string = os.Args[2]
-    DeleteMemo(ArgsInt)
+    DeleteMemo(os.Args[2])
   }else if len(os.Args) == 2 && os.Args[1] == "da"{
     DeleteAllMemo()
   }else if len(os.Args) == 2 && os.Args[1] == "s"{
     SelectMemo()
   }else if len(os.Args) == 5 && os.Args[1] == "a" && os.Args[2] == "sh"{
-    var ArgsString string = os.Args[3]
-    var ShortString string = os.Args[4]
-    InsertShort(ArgsString, ShortString)
+    InsertShort(os.Args[3], os.Args[4])
   }else if len(os.Args) == 3 && os.Args[1] == "r"{
-    var ArgsRowid string = os.Args[2]
-    SelectShortMemo(ArgsRowid)
+    SelectShortMemo(os.Args[2])
   }else if len(os.Args) == 1 || os.Args[1] == "h"{
     fmt.Printf("\nYou can use this command:\n" + "\n" +
                "a - To add a memo\n" +
