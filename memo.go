@@ -8,19 +8,26 @@ import (
         _ "github.com/mattn/go-sqlite3"
         "os/user"
         "log"
+        "flag"
 )
 
+var (
+  Add = flag.Bool("a", false, "[memo] | To add a memo")
+  AddShort = flag.Bool("ash", false, "[long memo] [shorted memo] | Add a shorted memo")
+  Show = flag.Bool("s", false, "To show all memo")
+  Delete = flag.Bool("d", false, "[position number] | To delete a memo")
+  DeleteAll = flag.Bool("da", false, "To delete all memo")
+  Reveal = flag.Bool("r", false, "[position number] | Show the complete memo")
+  Modify = flag.Bool("m", false, "[position number] | To edit a memo")
+  ModifyShort = flag.Bool("msh", false, "[position number] | To edit the memo behind the shorted memo")
+)
 
 func CreateMemo() {
   var db, err = sql.Open("sqlite3", "./memo.db")
   if err != nil {
     log.Fatal(err)
   }
-  _, err = db.Exec("CREATE TABLE IF NOT EXISTS Things (ToDo text, Short text)")
-  if err != nil {
-    log.Fatal(err)
-  }
-
+  db.Exec("CREATE TABLE IF NOT EXISTS Things (ToDo text, Short text)")
 }
 
 func InsertShort(ArgsString string, ShortString string){
@@ -30,11 +37,7 @@ func InsertShort(ArgsString string, ShortString string){
   }
   var t = time.Now()
   var date = t.Format("2006-01-02 15:04:05")
-  _, err = db.Exec("INSERT INTO Things (ToDo, Short) VALUES (?, ?)", (ShortString + "\t\t" + "(" +date+ ")"), (ArgsString + "\t\t" + "(" +date+ ")"))
-  if err != nil {
-    log.Fatal(err)
-  }
-
+  db.Exec("INSERT INTO Things (ToDo, Short) VALUES (?, ?)", (ShortString + "\t\t" + "(" +date+ ")"), (ArgsString + "\t\t" + "(" +date+ ")"))
   defer db.Close()
 }
 
@@ -46,11 +49,7 @@ func InsertMemo(ArgsString string) {
   }
   var t = time.Now()
   var date = t.Format("2006-01-02 15:04:05")
-  _, err = db.Exec("INSERT INTO Things (ToDo) VALUES (?)", (ArgsString + "\t\t" + "(" +date+ ")"))
-  if err != nil {
-    log.Fatal(err)
-  }
-
+  db.Exec("INSERT INTO Things (ToDo) VALUES (?)", (ArgsString + "\t\t" + "(" +date+ ")"))
   defer db.Close()
 }
 
@@ -106,11 +105,8 @@ func ModifyMemo(ArgsStringR string, ArgsStringM string) {
   }
   var t = time.Now()
   var date = t.Format("2006-01-02 15:04:05")
-  _, err = db.Exec("UPDATE Things SET ToDo=? WHERE rowid=?", (ArgsStringM + "\t\t" + "("+date+")"), (ArgsStringR))
-  if err != nil {
-    log.Fatal(err)
+  db.Exec("UPDATE Things SET ToDo=? WHERE rowid=?", (ArgsStringM + "\t\t" + "("+date+")"), (ArgsStringR))
   defer db.Close()
-  }
 }
 
 func ModifyMemoShort(ArgsStringR string, ArgsStringS string) {
@@ -120,11 +116,8 @@ func ModifyMemoShort(ArgsStringR string, ArgsStringS string) {
   }
   var t = time.Now()
   var date = t.Format("2006-01-02 15:04:05")
-  _, err = db.Exec("UPDATE Things SET Short=? WHERE rowid=?", (ArgsStringS + "\t\t" + "("+date+")"), (ArgsStringR))
-  if err != nil {
-    log.Fatal(err)
+  db.Exec("UPDATE Things SET Short=? WHERE rowid=?", (ArgsStringS + "\t\t" + "("+date+")"), (ArgsStringR))
   defer db.Close()
-  }
 }
 
 func DeleteMemo(ArgsInt string) {
@@ -132,11 +125,8 @@ func DeleteMemo(ArgsInt string) {
   if err != nil {
     log.Fatal(err)
   }
-  _, err = db.Exec("DELETE FROM Things WHERE rowid=?", (ArgsInt))
-  if err != nil {
-    log.Fatal(err)
+  db.Exec("DELETE FROM Things WHERE rowid=?", (ArgsInt))
   defer db.Close()
-  }
 }
 
 
@@ -145,15 +135,12 @@ func DeleteAllMemo() {
   if err != nil {
     log.Fatal(err)
   }
-  _, err = db.Exec("DELETE FROM Things")
-  if err != nil {
-    log.Fatal(err)
+  db.Exec("DELETE FROM Things")
   defer db.Close()
-  }
 }
 
 func GetUserHome() {
-  var Home ,_ = user.Current()
+  var Home, _ = user.Current()
   os.Chdir(Home.HomeDir)
   os.Mkdir(".memo", 0700)
   os.Chdir(".memo")
@@ -163,35 +150,24 @@ func GetUserHome() {
 
 func main() {
   GetUserHome()
-
-  if len(os.Args) == 3 && os.Args[1] == "a" && len(os.Args[2]) >= 1{
+  flag.Parse()
+  if *Add {
     InsertMemo(os.Args[2])
-  }else if len(os.Args) == 3 && os.Args[1] == "d" && len(os.Args[2]) >= 1{
+  }else if *Delete {
     DeleteMemo(os.Args[2])
-  }else if len(os.Args) == 2 && os.Args[1] == "da"{
+  }else if *DeleteAll {
     DeleteAllMemo()
-  }else if len(os.Args) == 2 && os.Args[1] == "s"{
+  }else if *Show {
     SelectMemo()
-  }else if len(os.Args) == 5 && os.Args[1] == "a" && os.Args[2] == "sh"{
-    InsertShort(os.Args[3], os.Args[4])
-  }else if len(os.Args) == 3 && os.Args[1] == "r"{
+  }else if *AddShort {
+    InsertShort(os.Args[2], os.Args[3])
+  }else if *Reveal {
     SelectShortMemo(os.Args[2])
-  }else if len(os.Args) == 4 && os.Args[1] == "m"{
+  }else if *Modify {
     ModifyMemo(os.Args[2], os.Args[3])
-  }else if len(os.Args) == 5 && os.Args[1] == "m" && os.Args[2] == "sh" {
-    ModifyMemoShort(os.Args[3], os.Args[4])
-  }else if len(os.Args) == 1 || os.Args[1] == "h"{
-    fmt.Printf("\nYou can use this command:\n" + "\n" +
-               "a - To add a memo\n" +
-               "d position number - To delete a memo\n" +
-               "da  - To delete all memo\n" +
-               "s - To show all memo\n" +
-               "a sh long memo] shorted memo - Add a shorted memo\n" +
-               "r position number - Show the complete memo\n" +
-               "m position number - To edit a memo\n" +
-               "m sh position number - To edit the memo behind the shorted memo\n" +
-               "h - This message\n" + "\n")
-  }else{
+  }else if *ModifyShort {
+    ModifyMemoShort(os.Args[2], os.Args[3])
+  }else {
     fmt.Println("Something went wrong")
   }
 }
