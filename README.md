@@ -54,6 +54,11 @@ memo -s
 4 - link README
 ```
 
+To delete multiple memo:
+```
+memo -d 1 2 3 4
+```
+
 # Build from source
 ```
 go get github.com/mattn/go-sqlite3
