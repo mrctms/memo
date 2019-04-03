@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
 	"os/user"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -118,12 +119,14 @@ func ModifyMemoShort(ArgsStringR string, ArgsStringS string) {
 	defer db.Close()
 }
 
-func DeleteMemo(ArgsInt string) {
+func DeleteMemo(ArgsInt []string) {
 	var db, err = sql.Open("sqlite3", "./memo.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.Exec("DELETE FROM Things WHERE rowid=?", (ArgsInt))
+	for _, v := range ArgsInt {
+		db.Exec("DELETE FROM Things WHERE rowid=?", (v))
+	}
 	defer db.Close()
 }
 
@@ -150,7 +153,7 @@ func main() {
 	if *Add {
 		InsertMemo(os.Args[2])
 	} else if *Delete {
-		DeleteMemo(os.Args[2])
+		DeleteMemo(os.Args[1:])
 	} else if *DeleteAll {
 		DeleteAllMemo()
 	} else if *Show {
