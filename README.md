@@ -4,7 +4,7 @@ With this program you can save your memo from the command line.
 
 # Installation on Linux
 
-Download <a href="https://marcktomack.pythonanywhere.com/download/memo">here</a>
+Download <a href="https://marcktomack.pythonanywhere.com/memo">here</a>
 
 ```
 cd memo
