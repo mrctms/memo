@@ -28,70 +28,66 @@ import (
 )
 
 var (
-	Add         = flag.Bool("a", false, "[memo] | To add a memo")
-	AddShort    = flag.Bool("ash", false, "[long memo] [shorted memo] | Add a shorted memo")
-	Show        = flag.Bool("s", false, "To show all memo")
-	Delete      = flag.Bool("d", false, "[position number] | To delete a memo")
-	DeleteAll   = flag.Bool("da", false, "To delete all memo")
-	Reveal      = flag.Bool("r", false, "[position number] | Show the complete memo")
-	Modify      = flag.Bool("m", false, "[position number] [memo] | To edit a memo")
-	ModifyShort = flag.Bool("msh", false, "[position number] [memo] | To edit the memo behind the shorted memo")
+	add         = flag.Bool("a", false, "[memo] | To add a memo")
+	addShort    = flag.Bool("ash", false, "[long memo] [shorted memo] | Add a shorted memo")
+	show        = flag.Bool("s", false, "To show all memo")
+	delete      = flag.Bool("d", false, "[position number] | To delete a memo")
+	deleteAll   = flag.Bool("da", false, "To delete all memo")
+	reveal      = flag.Bool("r", false, "[position number] | Show the complete memo")
+	modify      = flag.Bool("m", false, "[position number] [memo] | To edit a memo")
+	modifyShort = flag.Bool("msh", false, "[position number] [memo] | To edit the memo behind the shorted memo")
+	db, err     = sql.Open("sqlite3", "./memo.db")
 )
 
-func CreateMemo() {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func createMemo() {
 	if err != nil {
 		log.Fatal(err)
 	}
 	db.Exec("CREATE TABLE IF NOT EXISTS Things (ToDo text, Short text, DateTime text)")
 }
 
-func InsertShort(ArgsString string, ShortString string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func insertShort(argsString string, shortString string) {
 	if err != nil {
 		log.Fatal(err)
 	}
 	var t = time.Now()
 	var date = t.Format("2006-01-02 15:04:05")
-	db.Exec("INSERT INTO Things (ToDo, Short, DateTime) VALUES (?, ?, ?)", (ShortString), (ArgsString), (date))
+	db.Exec("INSERT INTO Things (ToDo, Short, DateTime) VALUES (?, ?, ?)", (shortString), (argsString), (date))
 	defer db.Close()
 }
 
-func InsertMemo(ArgsString string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func insertMemo(argsString string) {
 	if err != nil {
 		log.Fatal(err)
 	}
 	var t = time.Now()
 	var date = t.Format("2006-01-02 15:04:05")
-	db.Exec("INSERT INTO Things (ToDo, DateTime) VALUES (?, ?)", (ArgsString), (date))
+	db.Exec("INSERT INTO Things (ToDo, DateTime) VALUES (?, ?)", (argsString), (date))
 	defer db.Close()
 }
 
-func SelectShortMemo(ArgsRowid string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func selectShortMemo(argsRowid string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var rows, e = db.Query("SELECT rowid, Short, DateTime FROM Things WHERE rowid=?", (ArgsRowid))
+	var rows, e = db.Query("SELECT rowid, Short, DateTime FROM Things WHERE rowid=?", (argsRowid))
 	if e != nil {
 		log.Fatal(e)
 	}
 	fmt.Printf("\n Memo:\n")
 	for rows.Next() {
-		var Short string
+		var short string
 		var rowid int
-		var DateTime string
-		rows.Scan(&rowid, &Short, &DateTime)
-		fmt.Println("\n", rowid, "-", DateTime, "-", Short)
+		var dateTime string
+		rows.Scan(&rowid, &short, &dateTime)
+		fmt.Println("\n", rowid, "-", dateTime, "-", short)
 	}
 	fmt.Printf("\n")
 	defer rows.Close()
 	defer db.Close()
 }
 
-func SelectMemo() {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func selectMemo() {
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -101,52 +97,48 @@ func SelectMemo() {
 	}
 	fmt.Printf("\n Memo:\n")
 	for rows.Next() {
-		var ToDo string
+		var toDo string
 		var rowid int
-		var DateTime string
-		rows.Scan(&rowid, &ToDo, &DateTime)
-		fmt.Println("\n", rowid, "-", DateTime, "-", ToDo)
+		var dateTime string
+		rows.Scan(&rowid, &toDo, &dateTime)
+		fmt.Println("\n", rowid, "-", dateTime, "-", toDo)
 	}
 	fmt.Printf("\n")
 	defer rows.Close()
 	defer db.Close()
 }
 
-func ModifyMemo(ArgsStringR string, ArgsStringM string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func modifyMemo(argsStringR string, argsStringM string) {
 	if err != nil {
 		log.Fatal(err)
 	}
 	var t = time.Now()
 	var date = t.Format("2006-01-02 15:04:05")
-	db.Exec("UPDATE Things SET ToDo=?, DateTime=? WHERE rowid=?", (ArgsStringM), (date), (ArgsStringR))
+	db.Exec("UPDATE Things SET ToDo=?, DateTime=? WHERE rowid=?", (argsStringM), (date), (argsStringR))
 	defer db.Close()
 }
 
-func ModifyMemoShort(ArgsStringR string, ArgsStringS string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func modifyMemoShort(argsStringR string, argsStringS string) {
 	if err != nil {
 		log.Fatal(err)
 	}
 	var t = time.Now()
 	var date = t.Format("2006-01-02 15:04:05")
-	db.Exec("UPDATE Things SET Short=?, DateTime=? WHERE rowid=?", (ArgsStringS), (date), (ArgsStringR))
+	db.Exec("UPDATE Things SET Short=?, DateTime=? WHERE rowid=?", (argsStringS), (date), (argsStringR))
 	defer db.Close()
 }
 
-func DeleteMemo(ArgsInt []string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func deleteMemo(argsInt []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, v := range ArgsInt {
+	for _, v := range argsInt {
 		db.Exec("DELETE FROM Things WHERE rowid=?", (v))
 	}
 	defer db.Close()
 }
 
-func DeleteAllMemo() {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func deleteAllMemo() {
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -154,33 +146,33 @@ func DeleteAllMemo() {
 	defer db.Close()
 }
 
-func GetUserHome() {
-	var Home, _ = user.Current()
-	os.Chdir(Home.HomeDir)
+func getUserHome() {
+	var home, _ = user.Current()
+	os.Chdir(home.HomeDir)
 	os.Mkdir(".memo", 0700)
 	os.Chdir(".memo")
-	CreateMemo()
+	createMemo()
 }
 
 func main() {
-	GetUserHome()
+	getUserHome()
 	flag.Parse()
-	if *Add {
-		InsertMemo(os.Args[2])
-	} else if *Delete {
-		DeleteMemo(os.Args[1:])
-	} else if *DeleteAll {
-		DeleteAllMemo()
-	} else if *Show {
-		SelectMemo()
-	} else if *AddShort {
-		InsertShort(os.Args[2], os.Args[3])
-	} else if *Reveal {
-		SelectShortMemo(os.Args[2])
-	} else if *Modify {
-		ModifyMemo(os.Args[2], os.Args[3])
-	} else if *ModifyShort {
-		ModifyMemoShort(os.Args[2], os.Args[3])
+	if *add {
+		insertMemo(os.Args[2])
+	} else if *delete {
+		deleteMemo(os.Args[1:])
+	} else if *deleteAll {
+		deleteAllMemo()
+	} else if *show {
+		selectMemo()
+	} else if *addShort {
+		insertShort(os.Args[2], os.Args[3])
+	} else if *reveal {
+		selectShortMemo(os.Args[2])
+	} else if *modify {
+		modifyMemo(os.Args[2], os.Args[3])
+	} else if *modifyShort {
+		modifyMemoShort(os.Args[2], os.Args[3])
 	} else {
 		fmt.Println("Something went wrong")
 	}
