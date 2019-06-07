@@ -62,5 +62,6 @@ memo -d 1 2 3 4
 # Build from source
 ```
 go get github.com/mattn/go-sqlite3
-go build memo.go
+cd memo
+go build 
 ```
