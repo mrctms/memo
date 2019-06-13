@@ -4,7 +4,7 @@ With this program you can save your memo from the command line.
 
 # Installation on Linux
 
-Download <a href="https://marcktomack.github.io/memo">here</a>
+Download <a href="https://github.com/marcktomack/memo/releases">here</a>
 
 ```
 cd memo
