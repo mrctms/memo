@@ -4,7 +4,7 @@ With this program you can save your memo from the command line.
 
 # Installation on Linux
 
-Download <a href="https://github.com/marcktomack/memo/releases">here</a>
+Download <a href="https://github.com/MarckTomack/memo/releases">here</a>
 
 ```
 cd memo
@@ -21,13 +21,13 @@ Usage of memo:
   -a	[memo] | To add a memo
   -ash
     	[long memo] [shorted memo] | Add a shorted memo
-  -d	[position number] | To delete a memo
+  -d	[id] | To delete a memo
   -da
     	To delete all memo
-  -m	[position number] | To edit a memo
+  -m	[id] [new memo] | To edit a memo
   -msh
-    	[position number] | To edit the memo behind the shorted memo
-  -r	[position number] | Show the complete memo
+    	[id] [new shorted memo] | To edit the memo behind the shorted memo
+  -r	[id] | Show the complete memo
   -s	To show all memo
 ```
 
@@ -45,7 +45,7 @@ memo -s
 3 - buy new car
 4 - link README
 memo -r 4
-4 - https://github.com/MarckTomack/memo/edit/master/README.md
+4 - https://github.com/MarckTomack/memo/README.md
 
 memo -d 2
 memo -s
@@ -60,8 +60,11 @@ memo -d 1 2 3 4
 ```
 
 # Build from source
+
+You need a <a href="https://golang.org/dl/">Go compiler</a>
+
 ```
-go get github.com/mattn/go-sqlite3
+git clone https://github.com/MarckTomack/memo.git
 cd memo
 go build 
 ```
