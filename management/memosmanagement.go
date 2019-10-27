@@ -19,142 +19,83 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
-	"os/user"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var date = time.Now().Format("2006-01-02 15:04:05")
-
-//CreateMemoTable create the main table in the database
-func CreateMemoTable() {
-	var db, err = sql.Open("sqlite3", "./memo.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.Exec("CREATE TABLE IF NOT EXISTS Things (ToDo text, Short text, DateTime text)")
-	defer db.Close()
-}
-
-//CreateShortMemo create a shorted memo
-func CreateShortMemo(memo string, shortedMemo string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.Exec("INSERT INTO Things (ToDo, Short, DateTime) VALUES (?, ?, ?)", (shortedMemo), (memo), (date))
-	defer db.Close()
-}
-
 //CreateMemo create a memo
-func CreateMemo(memo string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.Exec("INSERT INTO Things (ToDo, DateTime) VALUES (?, ?)", (memo), (date))
-	defer db.Close()
+func CreateMemo(db *sql.DB, memo *Memo) {
+	db.Exec("INSERT INTO Things (ToDo, DateTime, Short) VALUES (?, ?, ?)", (memo.Content), (memo.Date), (memo.ShortedContent))
+
 }
 
-//SelectShortMemo will print shorted memo by rowid
-func SelectShortMemo(rowid string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
-	if err != nil {
-		log.Fatal(err)
+//CreateShortedMemo create a shorted memo
+func CreateShortedMemo(db *sql.DB, memo *Memo) {
+	db.Exec("INSERT INTO Things (ToDo, DateTime, Short) VALUES (?, ?, ?)", (memo.ShortedContent), (memo.Date), (memo.Content))
+}
+
+func CreateMemoTable(db *sql.DB) {
+	db.Exec("CREATE TABLE IF NOT EXISTS Things (ID integer primary key autoincrement, ToDo text, Short text, DateTime text)")
+}
+
+//DeleteMemos delete the memo by id
+func DeleteMemos(db *sql.DB, id []string) {
+	for _, v := range id {
+		db.Exec("DELETE FROM Things WHERE ID=?", (v))
 	}
-	var rows, e = db.Query("SELECT rowid, Short, DateTime FROM Things WHERE rowid=?", (rowid))
-	if e != nil {
-		log.Fatal(e)
-	}
-	fmt.Printf("\n Memo:\n")
-	for rows.Next() {
-		var short string
-		var rowid int
-		var dateTime string
-		rows.Scan(&rowid, &short, &dateTime)
-		fmt.Println("\n", rowid, "-", dateTime, "-", short)
-	}
-	fmt.Printf("\n")
-	rows.Close()
-	defer db.Close()
+}
+
+//DeleteAllMemos delete all memos
+func DeleteAllMemos(db *sql.DB) {
+	db.Exec("DELETE FROM Things")
 }
 
 //SelectMemo will print all memos
-func SelectMemo() {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+func SelectMemo(db *sql.DB) {
+	var rows, err = db.Query("SELECT ID, ToDo, DateTime FROM Things")
 	if err != nil {
 		log.Fatal(err)
-	}
-	var rows, e = db.Query("SELECT rowid, ToDo, DateTime FROM Things")
-	if e != nil {
-		log.Fatal(e)
 	}
 	fmt.Printf("\n Memo:\n")
 	for rows.Next() {
 		var toDo string
-		var rowid int
+		var id int
 		var dateTime string
-		rows.Scan(&rowid, &toDo, &dateTime)
-		fmt.Println("\n", rowid, "-", dateTime, "-", toDo)
+		rows.Scan(&id, &toDo, &dateTime)
+		fmt.Println("\n", id, "-", dateTime, "-", toDo)
 	}
 	fmt.Printf("\n")
 	rows.Close()
-	defer db.Close()
 }
 
-//ModifyMemo edit the memo by rowid
-func ModifyMemo(rowid string, newMemo string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
+//SelectShortMemo will print shorted memo by id
+func SelectShortMemo(db *sql.DB, id string) {
+	var rows, err = db.Query("SELECT ID, Short, DateTime FROM Things WHERE ID=?", (id))
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.Exec("UPDATE Things SET ToDo=?, DateTime=? WHERE rowid=?", (newMemo), (date), (rowid))
-	defer db.Close()
+	for rows.Next() {
+		var short string
+		var id int
+		var dateTime string
+		rows.Scan(&id, &short, &dateTime)
+		if short == "" {
+			fmt.Printf("\nERROR: Memo with ID %d does not have a shorted memo\n\n", id)
+		} else {
+			fmt.Printf("\n Memo:\n")
+			fmt.Println("\n", id, "-", dateTime, "-", short)
+			fmt.Printf("\n")
+		}
+	}
+	rows.Close()
 }
 
-//ModifyMemoShort edit the shorted memo by rowid
-func ModifyMemoShort(rowid string, shortedMemo string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.Exec("UPDATE Things SET Short=?, DateTime=? WHERE rowid=?", (shortedMemo), (date), (rowid))
-	defer db.Close()
+//ModifyMemo edit the memo by id
+func ModifyMemo(db *sql.DB, id string, newMemo *Memo) {
+	db.Exec("UPDATE Things SET ToDo=?, DateTime=? WHERE ID=?", (newMemo.Content), (newMemo.Date), (id))
 }
 
-//DeleteMemos delete the memo by rowid
-func DeleteMemos(rowid []string) {
-	var db, err = sql.Open("sqlite3", "./memo.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, v := range rowid {
-		db.Exec("DELETE FROM Things WHERE rowid=?", (v))
-	}
-	defer db.Close()
-}
-
-//DeleteAllMemos delete all memos
-func DeleteAllMemos() {
-	var db, err = sql.Open("sqlite3", "./memo.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.Exec("DELETE FROM Things")
-	defer db.Close()
-}
-
-//GetUserHome will set the location where create the memo database.
-//Create the folder and the database
-func GetUserHome() {
-	var home, e = user.Current()
-	if e != nil {
-		log.Fatal(e)
-	}
-	os.Chdir(home.HomeDir)
-	os.Mkdir(".memo", 0700)
-	os.Chdir(".memo")
-	CreateMemoTable()
+//ModifyMemoShort edit the shorted memo by id
+func ModifyMemoShort(db *sql.DB, id string, newShortedMemo *Memo) {
+	db.Exec("UPDATE Things SET Short=?, DateTime=? WHERE ID=?", (newShortedMemo.ShortedContent), (newShortedMemo.Date), (id))
 }
