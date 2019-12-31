@@ -21,14 +21,12 @@ import (
 
 var date = time.Now().Format("2006-01-02 15:04:05")
 
-//Memo object
 type Memo struct {
 	Date           string
 	Content        string
 	ShortedContent string
 }
 
-//NewMemo return a *Memo with her content
 func NewMemo(content string, shortedContent string) *Memo {
 	return &Memo{Date: date, Content: content, ShortedContent: shortedContent}
 }

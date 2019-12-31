@@ -14,51 +14,24 @@ sudo ./install.sh
 
 # Usage
 
-You can use this command:
+You can use this commands:
 ```
-memo -h
-Usage of memo:
-  -a	[memo] | To add a memo
-  -ash
-    	[long memo] [shorted memo] | Add a shorted memo
-  -d	[id] | To delete a memo
-  -da
-    	To delete all memo
-  -m	[id] [new memo] | To edit a memo
-  -msh
-    	[id] [new shorted memo] | To edit the memo behind the shorted memo
-  -r	[id] | Show the complete memo
-  -s	To show all memo
-```
+Usage:
+  memo [command]
 
-For example,<br>
-If you want add a memo:
-```
-memo -a "buy some cookies"
-memo -ash "long string" "short string"
-```
-If you want delete a single memo:
-```
-memo -s
-1 - buy some cookies
-2 - https://github.com/MarckTomack/memo
-3 - buy new car
-4 - link README
-memo -r 4
-4 - https://github.com/MarckTomack/memo/README.md
+Available Commands:
+  add         Add a memo
+  delete      Delete a memo
+  edit        Edit a memo
+  help        Help about any command
+  show        Show all memo
 
-memo -d 2
-memo -s
-1 - buy some cookies
-3 - buy new car
-4 - link README
-```
+Flags:
+  -h, --help   help for memo
 
-To delete multiple memo:
-```
-memo -d 1 2 3 4
-```
+Use "memo [command] --help" for more information about a command.
 
+```
 # Build from source
 
 You need a <a href="https://golang.org/dl/">Go compiler</a>
