@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/marcktomack/memo/app"
 	m "github.com/marcktomack/memo/management"
 	"github.com/spf13/cobra"
@@ -52,8 +51,7 @@ var deleteCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if *deleteAllFlag {
 			memoApp.DeleteAllMemos()
-		} else {
-			fmt.Println(args[0:])
+		} else {			
 			memoApp.DeleteMemos(args[0:])
 		}
 	},
