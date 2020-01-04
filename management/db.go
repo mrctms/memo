@@ -16,9 +16,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.*/
 package management
 
 import (
+	"bufio"
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -113,6 +115,23 @@ func (m *MemoDB) EditMemo(id string, memo *Memo) error {
 	}
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (m *MemoDB) ImportFromFile(file string) error {
+	var fileContent []string
+	fileToImport, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+	fileScanner := bufio.NewScanner(fileToImport)
+	for fileScanner.Scan() {
+		fileContent = append(fileContent, fileScanner.Text())
+	}
+	for _, v := range fileContent {
+		newMemo := NewMemo(v, "")
+		m.CreateMemo(newMemo)
 	}
 	return nil
 }

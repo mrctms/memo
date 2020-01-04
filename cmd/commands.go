@@ -23,6 +23,7 @@ import (
 )
 
 var memoApp *app.App
+var importFileFlag *bool
 var shortFlag *bool
 var deleteAllFlag *bool
 var showShortedFlag *bool
@@ -34,12 +35,17 @@ var addCmd = &cobra.Command{
 	Long:  "Add a memo or a shorted memo with --short flag",
 	Run: func(cmd *cobra.Command, args []string) {
 		var newMemo *m.Memo
-		if *shortFlag {
-			newMemo = app.NewMemo(args[0], args[1])
+		if *importFileFlag {
+			memoApp.ImportFromFile(args[0])
 		} else {
-			newMemo = app.NewMemo(args[0], "")
+			if *shortFlag {
+				newMemo = app.NewMemo(args[0], args[1])
+			} else {
+				newMemo = app.NewMemo(args[0], "")
+			}
+			memoApp.CreateMemo(newMemo)
 		}
-		memoApp.CreateMemo(newMemo)
+
 	},
 	Example: "memo add \"your memo\"" + "\n" + "memo add \"your long memo\" --short \"your short memo\"",
 }
@@ -51,7 +57,7 @@ var deleteCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if *deleteAllFlag {
 			memoApp.DeleteAllMemos()
-		} else {			
+		} else {
 			memoApp.DeleteMemos(args[0:])
 		}
 	},
@@ -95,6 +101,7 @@ var editCmd = &cobra.Command{
 func Execute(db *sql.DB) {
 	memoApp = app.Initialize(db)
 	rootCmd := &cobra.Command{Use: "memo"}
+	importFileFlag = addCmd.Flags().Bool("file", false, "")
 	shortFlag = addCmd.Flags().Bool("short", false, "")
 	deleteAllFlag = deleteCmd.Flags().Bool("all", false, "")
 	showShortedFlag = showCmd.Flags().Bool("r", false, "")
