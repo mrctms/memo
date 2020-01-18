@@ -81,10 +81,3 @@ func (a *App) EditMemo(id string, memo *m.Memo) {
 		log.Fatalln(err)
 	}
 }
-
-func (a *App) ImportFromFile(file string) {
-	err := a.memoDb.ImportFromFile(file)
-	if err != nil {
-		log.Fatalln(err)
-	}
-}
