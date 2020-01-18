@@ -16,8 +16,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.*/
 package app
 
 import (
+	"bufio"
 	"database/sql"
 	"log"
+	"os"
 
 	m "github.com/marcktomack/memo/management"
 )
@@ -83,8 +85,17 @@ func (a *App) EditMemo(id string, memo *m.Memo) {
 }
 
 func (a *App) ImportFromFile(file string) {
-	err := a.memoDb.ImportFromFile(file)
+	var fileContent []string
+	fileToImport, err := os.Open(file)
 	if err != nil {
 		log.Fatalln(err)
+	}
+	fileScanner := bufio.NewScanner(fileToImport)
+	for fileScanner.Scan() {
+		fileContent = append(fileContent, fileScanner.Text())
+	}
+	for _, v := range fileContent {
+		newMemo := NewMemo(v, "")
+		a.memoDb.CreateMemo(newMemo)
 	}
 }
