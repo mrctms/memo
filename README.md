@@ -1,9 +1,3 @@
-# WARNING
-
-The project moved <a href="https://github.com/MarckTomack/memo">here.</a><br>
-Why I switch the project from Go to C#? a sad long story...
-
-
 # memo
 
 With this program you can save your memo from the command line.

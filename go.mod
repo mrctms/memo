@@ -1,9 +1,8 @@
-module github.com/marcktomack/memo
+module memo
 
-go 1.12
+go 1.14
 
 require (
-	github.com/mattn/go-sqlite3 v1.11.0
-	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.3
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
+	github.com/spf13/cobra v0.0.6
 )
