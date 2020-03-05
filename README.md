@@ -22,7 +22,7 @@ Usage:
 Available Commands:
   add         Add a memo
   delete      Delete a memo
-  edit        Edit a memo
+  update      Update a memo
   help        Help about any command
   show        Show all memo
 
