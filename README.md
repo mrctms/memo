@@ -21,10 +21,12 @@ Usage:
 
 Available Commands:
   add         Add a memo
+  archive     archive a memo
   delete      Delete a memo
-  update      Update a memo
   help        Help about any command
   show        Show all memo
+  update      Update a memo
+
 
 Flags:
   -h, --help   help for memo
