@@ -68,3 +68,7 @@ func DeleteAllMemo(count int) {
 func UpdateMemo(memoId int) {
 	fmt.Printf("\n Memo with id %v updated \n\n", memoId)
 }
+
+func ArchiveMemo(count int) {
+	fmt.Printf("\n Archived %d memo \n\n", count)
+}

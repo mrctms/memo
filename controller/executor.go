@@ -16,7 +16,7 @@
 package controller
 
 import (
-	"log"
+	"fmt"
 	"memo/model"
 	"memo/view"
 )
@@ -33,8 +33,16 @@ func NewExecutor(dbPath string) *Executor {
 	return executor
 }
 
+func (e *Executor) Close() {
+	e.dbModel.CloseDB()
+}
+
 func (e *Executor) initDb() {
-	e.dbModel.Execute("CREATE TABLE IF NOT EXISTS Memo (Id integer primary key autoincrement, Content text, ShortContent text, Date text)")
+	_, err := e.dbModel.Execute("CREATE TABLE IF NOT EXISTS Memo (Id integer primary key autoincrement, Content text, ShortContent text, Date text);CREATE TABLE IF NOT EXISTS MemoArchive (Id integer, Content text, ShortContent text, Date text)")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 func (e *Executor) CreateMemo(content string, shortContent string, date string) *model.Memo {
 	memo := &model.Memo{
@@ -48,7 +56,8 @@ func (e *Executor) CreateMemo(content string, shortContent string, date string) 
 func (e *Executor) GetMemo() {
 	memos, err := e.dbModel.Query("SELECT * FROM Memo")
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 	view.ShowMemo(memos, false)
 }
@@ -56,14 +65,16 @@ func (e *Executor) GetMemo() {
 func (e *Executor) GetMemoById(id int) {
 	memo, err := e.dbModel.Query("SELECT * FROM Memo WHERE Id=?", (id))
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 	view.ShowMemo(memo, true)
 }
 func (e *Executor) DeleteAllMemo() {
 	result, err := e.dbModel.Execute("DELETE FROM Memo")
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 	view.DeleteAllMemo(result)
 }
@@ -73,7 +84,8 @@ func (e *Executor) DeleteMemoById(id []int) {
 	for _, v := range id {
 		result, err := e.dbModel.Execute("DELETE FROM Memo WHERE Id=?", (v))
 		if err != nil {
-			log.Fatalln(err)
+			fmt.Println(err)
+			return
 		}
 		total += result
 	}
@@ -83,7 +95,8 @@ func (e *Executor) DeleteMemoById(id []int) {
 func (e *Executor) InsertMemo(memo *model.Memo) {
 	result, err := e.dbModel.Execute("INSERT INTO Memo (Content,ShortContent,Date) VALUES (?, ?, ?)", (memo.Content), (memo.ShortedContent), (memo.Date))
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 	view.InsertMemo(result)
 }
@@ -98,7 +111,84 @@ func (e *Executor) UpdateMemo(memo *model.Memo, id int) {
 		_, err = e.dbModel.Execute("UPDATE Memo SET Content=?, ShortContent=?, Date=? WHERE ID=?", (memo.Content), (memo.ShortedContent), (memo.Date), (id))
 	}
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 	view.UpdateMemo(id)
+}
+
+func (e *Executor) ArchiveMemo(memoId []int) {
+	var total int
+	var err error
+
+	for _, v := range memoId {
+
+		err = e.dbModel.InitTransaction()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		insertStmt, err := e.dbModel.PrepareStatement("INSERT INTO MemoArchive (Id,Content,ShortContent,Date) SELECT * FROM Memo WHERE Id=?")
+		deleteStmt, err := e.dbModel.PrepareStatement("DELETE FROM Memo WHERE Id=?")
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		_, err = e.dbModel.ExecuteStatment(insertStmt, (v))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		_, err = e.dbModel.ExecuteStatment(deleteStmt, (v))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		err = e.dbModel.CommitTransaction()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		total++
+	}
+	view.ArchiveMemo(total)
+}
+
+func (e *Executor) RestoreMemo(memoId int) {
+
+	// I don't know if I want implement the restore, for now, no
+
+}
+
+func (e *Executor) DeleteArchivedMemoById(memoId []int) {
+	// same
+}
+
+func (e *Executor) DeleteMemoArchive() {
+	result, err := e.dbModel.Execute("DELETE FROM MemoArchive")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	view.DeleteAllMemo(result)
+}
+
+func (e *Executor) ShowArchivedMemo() {
+	archivedMemo, err := e.dbModel.Query("SELECT * FROM MemoArchive")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	view.ShowMemo(archivedMemo, false)
+}
+
+func (e *Executor) GetArchivedMemoById(memoId int) {
+	archivedMemo, err := e.dbModel.Query("SELECT * FROM MemoArchive WHERE Id=?", (memoId))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	view.ShowMemo(archivedMemo, true)
 }

@@ -17,13 +17,14 @@ package model
 
 import (
 	"database/sql"
-	"log"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type MemoDb struct {
 	dbConnection *sql.DB
+	tx           *sql.Tx
 }
 
 func NewMemoDb(dbPath string) *MemoDb {
@@ -61,11 +62,54 @@ func (m *MemoDb) Query(sqlQuery string, param ...interface{}) ([]Memo, error) {
 		var memo Memo
 		err := rows.Scan(&memo.Id, &memo.Content, &memo.ShortedContent, &memo.Date)
 		if err != nil {
-			log.Fatalln(err)
+			return nil, err
 		}
 		memos = append(memos, memo)
 	}
 	return memos, nil
+}
+
+func (m *MemoDb) InitTransaction() error {
+	var err error
+
+	m.tx, err = m.dbConnection.Begin()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MemoDb) PrepareStatement(sqlQuery string) (*sql.Stmt, error) {
+	stmt, err := m.dbConnection.Prepare(sqlQuery)
+	if err != nil {
+		return nil, err
+	}
+	return stmt, nil
+}
+
+func (m *MemoDb) ExecuteStatment(stmt *sql.Stmt, params ...interface{}) (int, error) {
+	result, err := stmt.Exec(params...)
+	if err != nil {
+		if err := m.tx.Rollback(); err != nil {
+			return 0, fmt.Errorf("error on rollback transaction: %w", err)
+		}
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(rowsAffected), nil
+}
+
+func (m *MemoDb) CommitTransaction() error {
+	err := m.tx.Commit()
+	if err != nil {
+		return fmt.Errorf("error on commit transaction: %w", err)
+	}
+	return nil
 }
 
 func (m *MemoDb) Execute(sqlQuery string, param ...interface{}) (int, error) {
@@ -88,4 +132,5 @@ func (m *MemoDb) Execute(sqlQuery string, param ...interface{}) (int, error) {
 	}
 
 	return int(rowsAffected), nil
+
 }

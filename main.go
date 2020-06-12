@@ -16,6 +16,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"memo/controller"
 	"memo/model"
@@ -30,8 +31,7 @@ import (
 var executor *controller.Executor
 var shortFlag *bool
 var deleteAllFlag *bool
-var showShortedFlag *bool
-var updateShortedFlag *bool
+var archivedFlag *bool
 
 var addCmd = &cobra.Command{
 	Use:   "add",
@@ -55,14 +55,18 @@ var deleteCmd = &cobra.Command{
 	Long:  "Delete a memo or delete all memo with --all flag",
 	Run: func(cmd *cobra.Command, args []string) {
 		if *deleteAllFlag {
-			executor.DeleteAllMemo()
+			if *archivedFlag {
+				executor.DeleteMemoArchive()
+			} else {
+				executor.DeleteAllMemo()
+			}
 		} else {
-			var bo []int
+			var ids []int
 			for _, v := range args[0:] {
 				res, _ := strconv.Atoi(v)
-				bo = append(bo, res)
+				ids = append(ids, res)
 			}
-			executor.DeleteMemoById(bo)
+			executor.DeleteMemoById(ids)
 		}
 	},
 	Example: "memo delete 1\n" + "memo delete --all",
@@ -71,16 +75,25 @@ var deleteCmd = &cobra.Command{
 var showCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Show all memo",
-	Long:  "Show all memo or reveal the memo behind a shorted memo with --r flag",
+	Long:  "Show all memo or reveal the memo behind a shorted memo with --short flag",
 	Run: func(cmd *cobra.Command, args []string) {
-		if *showShortedFlag {
-			res, _ := strconv.Atoi(args[0])
-			executor.GetMemoById(res)
+		if *archivedFlag {
+			if *shortFlag {
+				res, _ := strconv.Atoi(args[0])
+				executor.GetArchivedMemoById(res)
+			} else {
+				executor.ShowArchivedMemo()
+			}
 		} else {
-			executor.GetMemo()
+			if *shortFlag {
+				res, _ := strconv.Atoi(args[0])
+				executor.GetMemoById(res)
+			} else {
+				executor.GetMemo()
+			}
 		}
 	},
-	Example: "memo show\n" + "memo show --r 1",
+	Example: "memo show\n" + "memo show --short 1",
 }
 
 var updateCmd = &cobra.Command{
@@ -89,7 +102,7 @@ var updateCmd = &cobra.Command{
 	Long:  "Update a memo use --short to edit also the shorted memo",
 	Run: func(cmd *cobra.Command, args []string) {
 		var newMemo *model.Memo
-		if *updateShortedFlag {
+		if *shortFlag {
 			if len(args) == 3 {
 				newMemo = executor.CreateMemo(args[1], args[2], time.Now().Format("01-02-2006 15:04:05"))
 			} else if len(args) == 2 {
@@ -104,25 +117,49 @@ var updateCmd = &cobra.Command{
 	Example: "memo update 1 \"new memo\"\n" + "memo update 1 \"new memo\" --short \"new shorted memo\"\n" + "memo update 1 --short \"new shorted memo\"",
 }
 
+var archiveCmd = &cobra.Command{
+	Use:   "archive",
+	Short: "archive a memo",
+	Long:  "archive a memo",
+	Run: func(cmd *cobra.Command, args []string) {
+		var ids []int
+		for _, v := range args[0:] {
+			conv, _ := strconv.Atoi(v)
+			ids = append(ids, conv)
+		}
+		executor.ArchiveMemo(ids)
+	},
+	Example: "memo archive 1",
+}
+
 func execute() {
 	rootCmd := &cobra.Command{Use: "memo"}
-	shortFlag = addCmd.Flags().Bool("short", false, "")
-	deleteAllFlag = deleteCmd.Flags().Bool("all", false, "")
-	showShortedFlag = showCmd.Flags().Bool("r", false, "")
-	updateShortedFlag = updateCmd.Flags().Bool("short", false, "")
+	shortFlag = flag.Bool("short", false, "")
+	deleteAllFlag = flag.Bool("all", false, "")
+	archivedFlag = flag.Bool("a", false, "")
+
+	showCmd.Flags().BoolVar(archivedFlag, "a", false, "")
+	deleteCmd.Flags().BoolVar(archivedFlag, "a", false, "")
+	addCmd.Flags().BoolVar(shortFlag, "short", false, "")
+	showCmd.Flags().BoolVar(shortFlag, "short", false, "")
+	updateCmd.Flags().BoolVar(shortFlag, "short", false, "")
+	deleteCmd.Flags().BoolVar(deleteAllFlag, "all", false, "")
+
 	rootCmd.AddCommand(addCmd)
 	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(showCmd)
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(archiveCmd)
 	rootCmd.Execute()
 }
 
 func main() {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 	db := path.Join(home, ".memo", "memo.db")
 	executor = controller.NewExecutor(db)
+	defer executor.Close()
 	execute()
 }
