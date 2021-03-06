@@ -1,18 +1,3 @@
-// Copyright (C) Marck Tomack <marcktomack@tutanota.com>
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 package view
 
 import (
@@ -22,23 +7,89 @@ import (
 	"strings"
 )
 
-func formatMemoView(memo model.Memo, reveal bool) string {
-	var result strings.Builder
-	result.WriteString("\n")
-	result.WriteString(" " + strconv.Itoa(memo.Id))
-	result.WriteString(" " + "-" + " ")
-	result.WriteString(memo.Date)
-	result.WriteString(" " + "-" + " ")
-	if reveal {
-		result.WriteString(memo.Content)
-	} else {
-		if memo.ShortedContent != "" {
-			result.WriteString(memo.ShortedContent)
-		} else {
-			result.WriteString(memo.Content)
+// func main() {
+// 	var b strings.Builder
+
+// 	w := "hello world"
+
+// 	b.WriteString("+")
+// 	for range w {
+// 		b.WriteString("-")
+// 	}
+// 	b.WriteString("+")
+// 	b.WriteString("\n")
+// 	b.WriteString("|")
+// 	b.WriteString(w)
+// 	b.WriteString("|\n")
+// 	b.WriteString("+")
+// 	for range w {
+// 		b.WriteString("-")
+// 	}
+// 	b.WriteString("+")
+// 	fmt.Println(b.String())
+// }
+
+func formatMemoView(memos []model.Memo, reveal bool) string {
+
+	var longestMemo string
+	var longestId string
+
+	idLabel := "ID"
+	memoLabel := "Memo"
+
+	for _, v := range memos {
+		id := strconv.Itoa(v.Id)
+		if len(v.Content) > len(longestMemo) {
+			longestMemo = v.Content
+		}
+		if len(id) > len(longestId) {
+			longestId = id
 		}
 	}
-	result.WriteString("\n")
+
+	var result strings.Builder
+
+	result.WriteString(fmt.Sprintf("+%s+%s+\n|%s", strings.Repeat("-", len(longestId)), strings.Repeat("-", len(longestMemo)), idLabel))
+
+	for i := 0; i < (len(longestId) - len(idLabel)); i++ {
+		result.WriteString(" ")
+	}
+	result.WriteString("|")
+
+	result.WriteString(memoLabel)
+	for i := 0; i < (len(longestMemo) - len(memoLabel)); i++ {
+		result.WriteString(" ")
+	}
+
+	result.WriteString(fmt.Sprintf("|\n+%s+%s+\n", strings.Repeat("-", len(longestId)), strings.Repeat("-", len(longestMemo))))
+
+	// memos
+
+	for _, v := range memos {
+
+		var content string
+		if reveal {
+			content = v.Content
+		} else {
+			if v.ShortedContent != "" {
+				content = v.ShortedContent
+			} else {
+				content = v.Content
+			}
+		}
+		result.WriteString("|")
+		id := strconv.Itoa(v.Id)
+		result.WriteString(id)
+		for i := 0; i < (len(longestId) - len(id)); i++ {
+			result.WriteString(" ")
+		}
+		result.WriteString("|")
+		result.WriteString(content)
+		for i := 0; i < (len(longestMemo) - len(content)); i++ {
+			result.WriteString(" ")
+		}
+		result.WriteString(fmt.Sprintf("|\n+%s+%s+\n", strings.Repeat("-", len(longestId)), strings.Repeat("-", len(longestMemo))))
+	}
 
 	return result.String()
 }
@@ -47,10 +98,8 @@ func ShowMemo(memos []model.Memo, reveal bool) {
 	if len(memos) == 0 {
 		fmt.Printf("\n No Memo \n\n")
 	} else {
-		for _, v := range memos {
-			result := formatMemoView(v, reveal)
-			fmt.Println(result)
-		}
+		result := formatMemoView(memos, reveal)
+		fmt.Println(result)
 	}
 }
 

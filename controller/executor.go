@@ -1,18 +1,3 @@
-// Copyright (C) Marck Tomack <marcktomack@tutanota.com>
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 package controller
 
 import (
@@ -20,6 +5,15 @@ import (
 	"memo/model"
 	"memo/view"
 )
+
+type OrderBy int
+
+const (
+	Asc  OrderBy = 1
+	Desc         = 2
+)
+
+var orderByMap = map[OrderBy]string{Asc: "ORDER BY Id ASC", Desc: "ORDER BY Id DESC", 0: "ORDER BY Id ASC"}
 
 type Executor struct {
 	dbModel *model.MemoDb
@@ -53,8 +47,8 @@ func (e *Executor) CreateMemo(content string, shortContent string, date string) 
 	return memo
 }
 
-func (e *Executor) GetMemo() {
-	memos, err := e.dbModel.Query("SELECT * FROM Memo")
+func (e *Executor) GetMemo(by OrderBy) {
+	memos, err := e.dbModel.Query(fmt.Sprintf("SELECT * FROM Memo %s", orderByMap[by]))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -62,13 +56,13 @@ func (e *Executor) GetMemo() {
 	view.ShowMemo(memos, false)
 }
 
-func (e *Executor) GetMemoById(id int) {
+func (e *Executor) GetMemoById(id int, reveal bool) {
 	memo, err := e.dbModel.Query("SELECT * FROM Memo WHERE Id=?", (id))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	view.ShowMemo(memo, true)
+	view.ShowMemo(memo, reveal)
 }
 func (e *Executor) DeleteAllMemo() {
 	result, err := e.dbModel.Execute("DELETE FROM Memo")
@@ -175,8 +169,8 @@ func (e *Executor) DeleteMemoArchive() {
 	view.DeleteAllMemo(result)
 }
 
-func (e *Executor) ShowArchivedMemo() {
-	archivedMemo, err := e.dbModel.Query("SELECT * FROM MemoArchive")
+func (e *Executor) ShowArchivedMemo(by OrderBy) {
+	archivedMemo, err := e.dbModel.Query(fmt.Sprintf("SELECT * FROM MemoArchive %s", orderByMap[by]))
 	if err != nil {
 		fmt.Println(err)
 		return

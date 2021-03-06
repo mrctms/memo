@@ -1,18 +1,3 @@
-// Copyright (C) Marck Tomack <marcktomack@tutanota.com>
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 package main
 
 import (
@@ -32,6 +17,8 @@ var executor *controller.Executor
 var shortFlag *bool
 var deleteAllFlag *bool
 var archivedFlag *bool
+var ascFlag *bool
+var descFlag *bool
 
 var addCmd = &cobra.Command{
 	Use:   "add",
@@ -77,19 +64,25 @@ var showCmd = &cobra.Command{
 	Short: "Show all memo",
 	Long:  "Show all memo or reveal the memo behind a shorted memo with --short flag",
 	Run: func(cmd *cobra.Command, args []string) {
+		var orderBy controller.OrderBy
+		if *ascFlag {
+			orderBy = controller.Asc
+		} else if *descFlag {
+			orderBy = controller.Desc
+		}
 		if *archivedFlag {
 			if *shortFlag {
 				res, _ := strconv.Atoi(args[0])
 				executor.GetArchivedMemoById(res)
 			} else {
-				executor.ShowArchivedMemo()
+				executor.ShowArchivedMemo(orderBy)
 			}
 		} else {
 			if *shortFlag {
 				res, _ := strconv.Atoi(args[0])
-				executor.GetMemoById(res)
+				executor.GetMemoById(res, *shortFlag)
 			} else {
-				executor.GetMemo()
+				executor.GetMemo(orderBy)
 			}
 		}
 	},
@@ -137,11 +130,15 @@ func execute() {
 	shortFlag = flag.Bool("short", false, "")
 	deleteAllFlag = flag.Bool("all", false, "")
 	archivedFlag = flag.Bool("a", false, "")
+	ascFlag = flag.Bool("asc", false, "")
+	descFlag = flag.Bool("desc", false, "")
 
 	showCmd.Flags().BoolVar(archivedFlag, "a", false, "")
 	deleteCmd.Flags().BoolVar(archivedFlag, "a", false, "")
 	addCmd.Flags().BoolVar(shortFlag, "short", false, "")
 	showCmd.Flags().BoolVar(shortFlag, "short", false, "")
+	showCmd.Flags().BoolVar(ascFlag, "asc", false, "")
+	showCmd.Flags().BoolVar(descFlag, "desc", false, "")
 	updateCmd.Flags().BoolVar(shortFlag, "short", false, "")
 	deleteCmd.Flags().BoolVar(deleteAllFlag, "all", false, "")
 
