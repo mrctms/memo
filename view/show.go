@@ -7,28 +7,6 @@ import (
 	"strings"
 )
 
-// func main() {
-// 	var b strings.Builder
-
-// 	w := "hello world"
-
-// 	b.WriteString("+")
-// 	for range w {
-// 		b.WriteString("-")
-// 	}
-// 	b.WriteString("+")
-// 	b.WriteString("\n")
-// 	b.WriteString("|")
-// 	b.WriteString(w)
-// 	b.WriteString("|\n")
-// 	b.WriteString("+")
-// 	for range w {
-// 		b.WriteString("-")
-// 	}
-// 	b.WriteString("+")
-// 	fmt.Println(b.String())
-// }
-
 func formatMemoView(memos []model.Memo, reveal bool) string {
 
 	var longestMemo string
