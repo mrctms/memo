@@ -4,16 +4,9 @@ import (
 	"fmt"
 	"memo/model"
 	"os"
-	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
-)
-
-const (
-	// config?
-	maxMemoLength   = 50
-	splitMemoLength = 30
 )
 
 func renderMemos(memos []model.Memo, reveal bool) {
@@ -31,12 +24,6 @@ func renderMemos(memos []model.Memo, reveal bool) {
 			} else {
 				content = v.Content
 			}
-		}
-		if len(content) > maxMemoLength {
-			contentSlice := strings.Split(content, "")
-			first := contentSlice[:splitMemoLength]
-			second := contentSlice[splitMemoLength:]
-			content = fmt.Sprintf("%s\n%s", strings.Join(first, ""), strings.Join(second, ""))
 		}
 		t.AppendRow(table.Row{v.Id, content})
 		t.AppendSeparator()
