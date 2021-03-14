@@ -3,48 +3,25 @@ package view
 import (
 	"fmt"
 	"memo/model"
-	"strconv"
+	"os"
 	"strings"
+
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
-func formatMemoView(memos []model.Memo, reveal bool) string {
+const (
+	// config?
+	maxMemoLength   = 50
+	splitMemoLength = 30
+)
 
-	var longestMemo string
-	var longestId string
-
-	idLabel := "ID"
-	memoLabel := "Memo"
-
+func renderMemos(memos []model.Memo, reveal bool) {
+	t := table.NewWriter()
+	t.Style().Format.Header = text.FormatDefault
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"ID", "Memo"})
 	for _, v := range memos {
-		id := strconv.Itoa(v.Id)
-		if len(v.Content) > len(longestMemo) {
-			longestMemo = v.Content
-		}
-		if len(id) > len(longestId) {
-			longestId = id
-		}
-	}
-
-	var result strings.Builder
-
-	result.WriteString(fmt.Sprintf("+%s+%s+\n|%s", strings.Repeat("-", len(longestId)), strings.Repeat("-", len(longestMemo)), idLabel))
-
-	for i := 0; i < (len(longestId) - len(idLabel)); i++ {
-		result.WriteString(" ")
-	}
-	result.WriteString("|")
-
-	result.WriteString(memoLabel)
-	for i := 0; i < (len(longestMemo) - len(memoLabel)); i++ {
-		result.WriteString(" ")
-	}
-
-	result.WriteString(fmt.Sprintf("|\n+%s+%s+\n", strings.Repeat("-", len(longestId)), strings.Repeat("-", len(longestMemo))))
-
-	// memos
-
-	for _, v := range memos {
-
 		var content string
 		if reveal {
 			content = v.Content
@@ -55,29 +32,23 @@ func formatMemoView(memos []model.Memo, reveal bool) string {
 				content = v.Content
 			}
 		}
-		result.WriteString("|")
-		id := strconv.Itoa(v.Id)
-		result.WriteString(id)
-		for i := 0; i < (len(longestId) - len(id)); i++ {
-			result.WriteString(" ")
+		if len(content) > maxMemoLength {
+			contentSlice := strings.Split(content, "")
+			first := contentSlice[:splitMemoLength]
+			second := contentSlice[splitMemoLength:]
+			content = fmt.Sprintf("%s\n%s", strings.Join(first, ""), strings.Join(second, ""))
 		}
-		result.WriteString("|")
-		result.WriteString(content)
-		for i := 0; i < (len(longestMemo) - len(content)); i++ {
-			result.WriteString(" ")
-		}
-		result.WriteString(fmt.Sprintf("|\n+%s+%s+\n", strings.Repeat("-", len(longestId)), strings.Repeat("-", len(longestMemo))))
+		t.AppendRow(table.Row{v.Id, content})
+		t.AppendSeparator()
 	}
-
-	return result.String()
+	t.Render()
 }
 
 func ShowMemo(memos []model.Memo, reveal bool) {
 	if len(memos) == 0 {
 		fmt.Printf("\n No Memo \n\n")
 	} else {
-		result := formatMemoView(memos, reveal)
-		fmt.Println(result)
+		renderMemos(memos, reveal)
 	}
 }
 
