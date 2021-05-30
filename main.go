@@ -2,9 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
-	"memo/controller"
-	"memo/model"
 	"os"
 	"path"
 	"strconv"
@@ -13,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var executor *controller.Executor
+var executor *Executor
 var shortFlag *bool
 var deleteAllFlag *bool
 var archivedFlag *bool
@@ -25,13 +24,18 @@ var addCmd = &cobra.Command{
 	Short: "Add a memo",
 	Long:  "Add a memo or a shorted memo with --short flag",
 	Run: func(cmd *cobra.Command, args []string) {
-		var newMemo *model.Memo
+		var newMemo *Memo
 		if *shortFlag {
 			newMemo = executor.CreateMemo(args[0], args[1], time.Now().Format("01-02-2006 15:04:05"))
 		} else {
 			newMemo = executor.CreateMemo(args[0], "", time.Now().Format("01-02-2006 15:04:05"))
 		}
-		executor.InsertMemo(newMemo)
+		result, err := executor.InsertMemo(newMemo)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		InsertMemo(result)
 	},
 	Example: "memo add \"your memo\"" + "\n" + "memo add \"your long memo\" --short \"your short memo\"",
 }
@@ -41,11 +45,21 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete a memo",
 	Long:  "Delete a memo or delete all memo with --all flag",
 	Run: func(cmd *cobra.Command, args []string) {
+		var result int
+		var err error
 		if *deleteAllFlag {
 			if *archivedFlag {
-				executor.DeleteMemoArchive()
+				result, err = executor.DeleteMemoArchive()
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
 			} else {
-				executor.DeleteAllMemo()
+				result, err = executor.DeleteAllMemo()
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
 			}
 		} else {
 			var ids []int
@@ -53,8 +67,13 @@ var deleteCmd = &cobra.Command{
 				res, _ := strconv.Atoi(v)
 				ids = append(ids, res)
 			}
-			executor.DeleteMemoById(ids)
+			result, err = executor.DeleteMemoById(ids)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
 		}
+		DeleteMemo(result)
 	},
 	Example: "memo delete 1\n" + "memo delete --all",
 }
@@ -64,27 +83,35 @@ var showCmd = &cobra.Command{
 	Short: "Show all memo",
 	Long:  "Show all memo or reveal the memo behind a shorted memo with --short flag",
 	Run: func(cmd *cobra.Command, args []string) {
-		var orderBy controller.OrderBy
+		var orderBy OrderBy
 		if *ascFlag {
-			orderBy = controller.Asc
+			orderBy = Asc
 		} else if *descFlag {
-			orderBy = controller.Desc
+			orderBy = Desc
 		}
+		var memos []Memo
+		var err error
+
 		if *archivedFlag {
 			if *shortFlag {
 				res, _ := strconv.Atoi(args[0])
-				executor.GetArchivedMemoById(res)
+				memos, err = executor.GetArchivedMemoById(res)
 			} else {
-				executor.ShowArchivedMemo(orderBy)
+				memos, err = executor.ShowArchivedMemo(orderBy)
 			}
 		} else {
 			if *shortFlag {
 				res, _ := strconv.Atoi(args[0])
-				executor.GetMemoById(res, *shortFlag)
+				memos, err = executor.GetMemoById(res, *shortFlag)
 			} else {
-				executor.GetMemo(orderBy)
+				memos, err = executor.GetMemo(orderBy)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
 			}
 		}
+		ShowMemo(memos, *shortFlag)
 	},
 	Example: "memo show\n" + "memo show --short 1",
 }
@@ -94,7 +121,7 @@ var updateCmd = &cobra.Command{
 	Short: "Update a memo",
 	Long:  "Update a memo use --short to edit also the shorted memo",
 	Run: func(cmd *cobra.Command, args []string) {
-		var newMemo *model.Memo
+		var newMemo *Memo
 		if *shortFlag {
 			if len(args) == 3 {
 				newMemo = executor.CreateMemo(args[1], args[2], time.Now().Format("01-02-2006 15:04:05"))
@@ -105,7 +132,12 @@ var updateCmd = &cobra.Command{
 			newMemo = executor.CreateMemo(args[1], "", time.Now().Format("01-02-2006 15:04:05"))
 		}
 		res, _ := strconv.Atoi(args[0])
-		executor.UpdateMemo(newMemo, res)
+		err := executor.UpdateMemo(newMemo, res)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		UpdateMemo(res)
 	},
 	Example: "memo update 1 \"new memo\"\n" + "memo update 1 \"new memo\" --short \"new shorted memo\"\n" + "memo update 1 --short \"new shorted memo\"",
 }
@@ -120,7 +152,12 @@ var archiveCmd = &cobra.Command{
 			conv, _ := strconv.Atoi(v)
 			ids = append(ids, conv)
 		}
-		executor.ArchiveMemo(ids)
+		res, err := executor.ArchiveMemo(ids)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		ArchiveMemo(res)
 	},
 	Example: "memo archive 1",
 }
@@ -156,7 +193,7 @@ func main() {
 		log.Fatalln(err)
 	}
 	db := path.Join(home, ".memo", "memo.db")
-	executor = controller.NewExecutor(db)
+	executor = NewExecutor(db)
 	defer executor.Close()
 	execute()
 }

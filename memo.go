@@ -1,4 +1,4 @@
-package model
+package main
 
 type Memo struct {
 	Id             int

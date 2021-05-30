@@ -1,9 +1,7 @@
-package controller
+package main
 
 import (
 	"fmt"
-	"memo/model"
-	"memo/view"
 )
 
 type OrderBy int
@@ -16,12 +14,12 @@ const (
 var orderByMap = map[OrderBy]string{Asc: "ORDER BY Id ASC", Desc: "ORDER BY Id DESC", 0: "ORDER BY Id ASC"}
 
 type Executor struct {
-	dbModel *model.MemoDb
+	dbModel *MemoDb
 }
 
 func NewExecutor(dbPath string) *Executor {
 	executor := new(Executor)
-	dbModel := model.NewMemoDb(dbPath)
+	dbModel := NewMemoDb(dbPath)
 	executor.dbModel = dbModel
 	executor.initDb()
 	return executor
@@ -38,8 +36,8 @@ func (e *Executor) initDb() {
 		return
 	}
 }
-func (e *Executor) CreateMemo(content string, shortContent string, date string) *model.Memo {
-	memo := &model.Memo{
+func (e *Executor) CreateMemo(content string, shortContent string, date string) *Memo {
+	memo := &Memo{
 		Content:        content,
 		ShortedContent: shortContent,
 		Date:           date,
@@ -47,55 +45,50 @@ func (e *Executor) CreateMemo(content string, shortContent string, date string) 
 	return memo
 }
 
-func (e *Executor) GetMemo(by OrderBy) {
+func (e *Executor) GetMemo(by OrderBy) ([]Memo, error) {
 	memos, err := e.dbModel.Query(fmt.Sprintf("SELECT * FROM Memo %s", orderByMap[by]))
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
-	view.ShowMemo(memos, false)
+	return memos, nil
 }
 
-func (e *Executor) GetMemoById(id int, reveal bool) {
+func (e *Executor) GetMemoById(id int, reveal bool) ([]Memo, error) {
 	memo, err := e.dbModel.Query("SELECT * FROM Memo WHERE Id=?", (id))
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
-	view.ShowMemo(memo, reveal)
+	return memo, nil
 }
-func (e *Executor) DeleteAllMemo() {
+func (e *Executor) DeleteAllMemo() (int, error) {
 	result, err := e.dbModel.Execute("DELETE FROM Memo")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return 0, err
 	}
-	view.DeleteAllMemo(result)
+	return result, nil
 }
 
-func (e *Executor) DeleteMemoById(id []int) {
+func (e *Executor) DeleteMemoById(id []int) (int, error) {
 	var total int
 	for _, v := range id {
 		result, err := e.dbModel.Execute("DELETE FROM Memo WHERE Id=?", (v))
 		if err != nil {
-			fmt.Println(err)
-			return
+			return total, err
 		}
 		total += result
 	}
-	view.DeleteMemoById(total)
+	return total, nil
 }
 
-func (e *Executor) InsertMemo(memo *model.Memo) {
+func (e *Executor) InsertMemo(memo *Memo) (int, error) {
 	result, err := e.dbModel.Execute("INSERT INTO Memo (Content,ShortContent,Date) VALUES (?, ?, ?)", (memo.Content), (memo.ShortedContent), (memo.Date))
 	if err != nil {
-		fmt.Println(err)
-		return
+		return 0, err
 	}
-	view.InsertMemo(result)
+	return result, nil
 }
 
-func (e *Executor) UpdateMemo(memo *model.Memo, id int) {
+func (e *Executor) UpdateMemo(memo *Memo, id int) error {
 	var err error
 	if memo.ShortedContent == "" {
 		_, err = e.dbModel.Execute("UPDATE Memo SET Content=?, Date=? WHERE Id=?", (memo.Content), (memo.Date), (id))
@@ -105,13 +98,12 @@ func (e *Executor) UpdateMemo(memo *model.Memo, id int) {
 		_, err = e.dbModel.Execute("UPDATE Memo SET Content=?, ShortContent=?, Date=? WHERE ID=?", (memo.Content), (memo.ShortedContent), (memo.Date), (id))
 	}
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
-	view.UpdateMemo(id)
+	return nil
 }
 
-func (e *Executor) ArchiveMemo(memoId []int) {
+func (e *Executor) ArchiveMemo(memoId []int) (int, error) {
 	var total int
 	var err error
 
@@ -119,35 +111,30 @@ func (e *Executor) ArchiveMemo(memoId []int) {
 
 		err = e.dbModel.InitTransaction()
 		if err != nil {
-			fmt.Println(err)
-			return
+			return total, err
 		}
 		insertStmt, err := e.dbModel.PrepareStatement("INSERT INTO MemoArchive (Id,Content,ShortContent,Date) SELECT * FROM Memo WHERE Id=?")
 		deleteStmt, err := e.dbModel.PrepareStatement("DELETE FROM Memo WHERE Id=?")
 
 		if err != nil {
-			fmt.Println(err)
-			return
+			return total, err
 		}
 		_, err = e.dbModel.ExecuteStatment(insertStmt, (v))
 		if err != nil {
-			fmt.Println(err)
-			return
+			return total, err
 		}
 
 		_, err = e.dbModel.ExecuteStatment(deleteStmt, (v))
 		if err != nil {
-			fmt.Println(err)
-			return
+			return total, err
 		}
 		err = e.dbModel.CommitTransaction()
 		if err != nil {
-			fmt.Println(err)
-			return
+			return total, err
 		}
 		total++
 	}
-	view.ArchiveMemo(total)
+	return total, nil
 }
 
 func (e *Executor) RestoreMemo(memoId int) {
@@ -160,29 +147,29 @@ func (e *Executor) DeleteArchivedMemoById(memoId []int) {
 	// same
 }
 
-func (e *Executor) DeleteMemoArchive() {
+func (e *Executor) DeleteMemoArchive() (int, error) {
 	result, err := e.dbModel.Execute("DELETE FROM MemoArchive")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return 0, err
 	}
-	view.DeleteAllMemo(result)
+	return result, nil
+	//DeleteAllMemo(result)
 }
 
-func (e *Executor) ShowArchivedMemo(by OrderBy) {
+func (e *Executor) ShowArchivedMemo(by OrderBy) ([]Memo, error) {
 	archivedMemo, err := e.dbModel.Query(fmt.Sprintf("SELECT * FROM MemoArchive %s", orderByMap[by]))
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
-	view.ShowMemo(archivedMemo, false)
+	return archivedMemo, nil
+	//ShowMemo(archivedMemo, false)
 }
 
-func (e *Executor) GetArchivedMemoById(memoId int) {
+func (e *Executor) GetArchivedMemoById(memoId int) ([]Memo, error) {
 	archivedMemo, err := e.dbModel.Query("SELECT * FROM MemoArchive WHERE Id=?", (memoId))
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
-	view.ShowMemo(archivedMemo, true)
+	return archivedMemo, nil
+	//ShowMemo(archivedMemo, true)
 }
